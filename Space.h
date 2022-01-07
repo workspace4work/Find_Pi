@@ -21,6 +21,15 @@ private:
 	sf::VideoMode videomode;
 	sf::Event ev;
 
+	sf::Clock clock;
+
+	double wait, res;
+
+	std::shared_ptr<sf::CircleShape> circle;
+	std::shared_ptr<sf::RectangleShape> square;
+
+	std::vector<std::shared_ptr<sf::RectangleShape>> points;
+
 	sf::Font font;
 
 	sf::Text denom;
