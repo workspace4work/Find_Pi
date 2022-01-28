@@ -13,6 +13,8 @@
 # include <SFML/System.hpp>
 # include <SFML/Window.hpp>
 
+# include "dot.h"
+
 // Main Application
 class Space
 {
@@ -27,23 +29,25 @@ private:
 
 	std::shared_ptr<sf::CircleShape> circle;
 	std::shared_ptr<sf::RectangleShape> square;
+	
+	std::shared_ptr<sf::CircleShape> dot;
+	sf::Vector2f pos;
 
-	std::vector<std::shared_ptr<sf::RectangleShape>> points;
+	std::vector<std::shared_ptr<ddd::dot>> dat;
 
 	sf::Font font;
 
-	sf::Text denom;
-	sf::Text numer;
-	sf::Text four;
 	sf::Text pi;
 
+	int curr, ct;
+	int i;
 
 	void initvariables();
 	void initWindow();
 	void setFont();
 
 public:
-	Space();
+	Space(std::vector<std::shared_ptr<ddd::dot>> &dat);
 
 	virtual ~Space();
 

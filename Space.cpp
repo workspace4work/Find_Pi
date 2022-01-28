@@ -5,18 +5,20 @@ void Space::setFont()
 {
 	if (!this->font.loadFromFile("fonts/arial.ttf"))
 	{
-		std::cout << "Cannot Find Font in Mixer" << std::endl;
+		std::cout << "Cannot Find Font" << std::endl;
 	}
 
-	four.setFont(font); 
-	four.setString("Hello world");
-	four.setCharacterSize(24);
-	four.setFillColor(sf::Color::White);
-	four.setStyle(sf::Text::Bold);
+	pi.setFont(font); 
+	pi.setString("0");
+	pi.setCharacterSize(48);
+	pi.setFillColor(sf::Color::White);
+	pi.setPosition(sf::Vector2f(800.f, 300.f));
 }
 
 void Space::initvariables()
 {
+	curr = 0;
+
 	this->setFont();
 
 	this->circle = std::make_shared<sf::CircleShape>();
@@ -24,6 +26,12 @@ void Space::initvariables()
 	this->circle->setOutlineColor(sf::Color::Black);
 	this->circle->setOutlineThickness(3);
 	this->circle->setPointCount(1000);
+
+	this->dot = std::make_shared<sf::CircleShape>();
+	this->dot->setRadius(3.f);
+	this->dot->setFillColor(sf::Color::Red);
+	
+	this->pos = sf::Vector2f(0.f, 0.f);
 
 	this->square = std::make_shared<sf::RectangleShape>(sf::Vector2f(600.f, 600.f));
 	this->square->setFillColor(sf::Color(155,155,155));
@@ -48,8 +56,12 @@ void Space::initWindow()
 }
 
 // Constructor & Destructor
-Space::Space()
+Space::Space(std::vector<std::shared_ptr<ddd::dot>> &dat)
 {
+	this->dat = dat;
+
+	//std::cout << dat[1]->x << " " << dat[1]->y << " " << dat[1]->d << " " << std::endl;
+
 	this->initvariables();
 	this->initWindow();
 }
@@ -81,6 +93,30 @@ void Space::pollEvents()
 			{
 				this->window->close();
 			}
+			else if (this->ev.key.code == sf::Keyboard::Right)
+			{
+				if (curr < 250000-1)
+				{
+					curr++;
+					if (this->dat[curr]->d <= 300.0)
+					{
+						ct++;
+						pi.setString(std::to_string((float)ct / (float)curr*4.0));
+					}
+				}
+			}
+			else if (this->ev.key.code == sf::Keyboard::Left)
+			{
+				if (curr > 0)
+				{
+					if (this->dat[curr]->d <= 300.0)
+					{
+						ct--;
+						pi.setString(std::to_string((float)ct / (float)curr*4.0));
+					}
+					curr--;
+				}
+			}
 			break;
 		default:
 			break;
@@ -101,11 +137,19 @@ void Space::render()
 		- render objects
 		- display the new frame
 	*/
-	//this->window->clear(sf::Color(0,0,0,0));
-	this->window->draw(four);
+	this->window->clear(sf::Color::Black);
+	this->window->draw(pi);
 	
 	this->window->draw(*(this->square));
 	this->window->draw(*(this->circle));
+
+	for (i = 0; i < curr; i++)
+	{
+		this->pos.x = dat[i]->x;
+		this->pos.y = dat[i]->y;
+		this->dot->setPosition(this->pos);
+		this->window->draw(*(this->dot));
+	}
 	
 	this->window->display();
 }

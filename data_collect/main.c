@@ -3,8 +3,8 @@
 # include <omp.h>
 # include <math.h>
 
-void seedThreads(unsigned int* seedsX, unsigned int* seedsY); //Generate unique seeds for each thread.
-void computeSave(unsigned int* seedsX, unsigned int* seedsY);
+void seedThreads(unsigned int* seeds); //Generate unique seeds for each thread.
+void computeSave(unsigned int* seeds);
 
 int main()
 {
@@ -16,10 +16,11 @@ int main()
 
 	//int id;
 
-	unsigned int* seedsX = (unsigned int*)malloc(sizeof(int)*nThreads);
-	unsigned int* seedsY = (unsigned int*)malloc(sizeof(int)*nThreads);
+	unsigned int* seeds = (unsigned int*)malloc(sizeof(int)*nThreads);
 
-	seedThreads(seedsX, seedsY);
+	seedThreads(seeds);
+
+	computeSave(seeds);
 	
 	//printf("The first seed is %d", seeds[0]);
 
@@ -35,7 +36,8 @@ int main()
 	return 0;
 }
 
-void seedThreads(unsigned int* seedsX, unsigned int* seedsY) {
+void seedThreads(unsigned int* seeds) 
+{
 
 #	pragma omp parallel
 	{
@@ -43,43 +45,39 @@ void seedThreads(unsigned int* seedsX, unsigned int* seedsY) {
 
 		unsigned int seed = (unsigned)time(NULL);
 
-		seedsX[threadId] = (seed & 0xFFFFFFF0) | (threadId + 1);
-		seedsY[threadId] = (seed & 0xFFF0F0F0) | (threadId + 1);
+		seeds[threadId] = (seed & 0xFFFFFFF0) | (threadId + 1);
 		// printf("thread %d has seed %d \n", threadId, seed);
 	}
 
 }
 
-void computeSave(unsigned int* seedsX, unsigned int* seedsY)
+void computeSave(unsigned int* seeds)
 {
 	FILE *res;
-	res = fopen("Data1.csv", "w+");
+	res = fopen("Data3.csv", "w+");
 
 	int i;
-	unsigned int seedX, seedY;
+	unsigned int seed;
 	float x, y, d;
 
-# pragma omp parallel \
-  shared(res) private(i,seedX, seedY,x,y,d)
-  {
-    seedX=seedsX[omp_get_thread_num()];
-	seedY=seedsY[omp_get_thread_num()];
-    
-	#pragma omp for schedule(static)
-    for(i = 0; i < 100000; i++){
-	  srand(seedX);
-      x = (float) (rand_r(&seedX) % 300);
-	  srand(seedY);
-	  y = (float) (rand_r(&seedY) % 300);
-	  d = sqrt(pow(x,2)+pow(y,2));
-	
-	# pragma omp critical
-	  fprintf(res, "%.4f, %.4f, %.4f \n", x,y,d);
-      
-      
-      // printf("Thread %d: %c for seed %d\n", omp_get_thread_num(), res[i], i);
-      
-    }
-  }
-  fclose(res);
+# pragma omp parallel\
+  shared(seeds,res) private(i,seed,x,y,d)
+	{
+		seed = seeds[omp_get_thread_num()];
+		srand(seed);
+
+#		pragma omp for schedule(static)
+		for (i = 0; i < 250000; i++) {
+			x = (float)((rand() % 6000)/10.0-300);
+			y = (float)((rand() % 6000)/10.0-300);
+			d = sqrt(pow(x, 2) + pow(y, 2));
+
+			# pragma omp critical
+			  {
+				  fprintf(res, "%.4f, %.4f, %.4f \n", x+300, y+300, d);
+				  //printf("Thread %d : x-> %.4f, y-> %.4f, d->%.4f, seed-> %d\n", omp_get_thread_num(), x,y,d,seed);
+			  }
+		}
+		fclose(res);
+	}
 }
